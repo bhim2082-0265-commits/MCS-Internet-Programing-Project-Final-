@@ -134,30 +134,26 @@ exports.generateInvoicePDF = async (invoice, patient) => {
     let y = HDR + 8;
 
     // ═══════════════════════════════════════════════════════
-    //  STATUS + AMOUNT SUMMARY ROW
+    //  STATUS + AMOUNT SUMMARY ROW (4 cells, all inside)
     // ═══════════════════════════════════════════════════════
     const saH = 20;
-    const saW = CW / 4;
+    const saGap = 2;
+    const saCellW = (CW - saGap * 3) / 4;
 
-    // Status cell
-    doc.roundedRect(M, y, saW - 1, saH, 3).fill(sc.bg);
-    doc.roundedRect(M, y, saW - 1, saH, 3).lineWidth(0.5).stroke(sc.bd);
-    doc.fontSize(8).font('Helvetica-Bold').fillColor(sc.fg).text(`${sc.icon}  STATUS: ${sc.l}`, M + 6, y + 5, { width: saW - 14 });
+    const drawAmountCell = (cx, label, val, valColor, bgColor, borderColor) => {
+      doc.save();
+      doc.roundedRect(cx, y, saCellW, saH, 3).fill(bgColor);
+      doc.roundedRect(cx, y, saCellW, saH, 3).lineWidth(0.4).stroke(borderColor);
+      doc.rect(cx + 5, y + 2, saCellW - 10, 0.3).fill(C.br);
+      doc.fontSize(4).font('Helvetica').fillColor(C.tl).text(label, cx + 5, y + 3, { width: saCellW - 10, align: 'left', lineBreak: false });
+      doc.fontSize(7.5).font('Helvetica-Bold').fillColor(valColor).text(val, cx + 5, y + 10, { width: saCellW - 10, align: 'left', lineBreak: false });
+      doc.restore();
+    };
 
-    const labels = ['AMOUNT PAID', 'BALANCE DUE', 'TOTAL'];
-    const vals = [
-      `Rs. ${(invoice.amountPaid || 0).toLocaleString()}`,
-      `Rs. ${balance.toLocaleString()}`,
-      `Rs. ${invoice.totalAmount.toLocaleString()}`
-    ];
-    const colors = [C.green, balance > 0 ? C.red : C.green, C.blue];
-    for (let i = 0; i < 3; i++) {
-      const cx = M + saW * (i + 1) + 1;
-      doc.roundedRect(cx, y, saW - 2, saH, 3).fill(C.ice);
-      doc.roundedRect(cx, y, saW - 2, saH, 3).lineWidth(0.3).stroke(C.br);
-      doc.fontSize(4.5).font('Helvetica').fillColor(C.tl).text(labels[i], cx + 6, y + 2, { width: saW - 16 });
-      doc.fontSize(8).font('Helvetica-Bold').fillColor(colors[i]).text(vals[i], cx + 6, y + 10, { width: saW - 16 });
-    }
+    drawAmountCell(M, 'STATUS', `${sc.icon} ${sc.l}`, sc.fg, sc.bg, sc.bd);
+    drawAmountCell(M + saCellW + saGap, 'AMOUNT PAID', `Rs. ${(invoice.amountPaid || 0).toLocaleString()}`, C.green, C.ice, C.br);
+    drawAmountCell(M + (saCellW + saGap) * 2, 'BALANCE DUE', `Rs. ${balance.toLocaleString()}`, balance > 0 ? C.red : C.green, C.ice, C.br);
+    drawAmountCell(M + (saCellW + saGap) * 3, 'TOTAL', `Rs. ${invoice.totalAmount.toLocaleString()}`, C.blue, C.ice, C.br);
     y += saH + 8;
 
     // ═══════════════════════════════════════════════════════
@@ -170,21 +166,25 @@ exports.generateInvoicePDF = async (invoice, patient) => {
 
     const drawInfoBox = (bx, title, rows) => {
       const boxH = infoHeadH + rows.length * infoRowH + 1;
+      doc.save();
       doc.roundedRect(bx, y, halfW, boxH, 3).fillAndStroke(C.wh, C.brd);
       doc.rect(bx + 1, y + 1, halfW - 2, infoHeadH).fill(C.blue);
       doc.roundedRect(bx, y, halfW, infoHeadH, 3).fill(C.blue);
       doc.rect(bx, y + 8, halfW, 4).fill(C.blue);
-      doc.fontSize(5.5).font('Helvetica-Bold').fillColor(C.wh).text(title, bx + 6, y + 3, { width: halfW - 12 });
+      doc.fontSize(5.5).font('Helvetica-Bold').fillColor(C.wh).text(title, bx + 6, y + 3, { width: halfW - 12, lineBreak: false });
 
       let ry = y + infoHeadH + 1;
+      const labelW = 50;
+      const valW = halfW - labelW - 12;
       rows.forEach(([label, val, vClr, vBold], idx) => {
         doc.rect(bx + 1, ry, halfW - 2, infoRowH).fill(idx % 2 === 0 ? C.wh : C.ice);
-        doc.rect(bx, ry, halfW, 0.3).fill(C.br);
-        doc.fontSize(5).font('Helvetica-Bold').fillColor(C.tl).text(label, bx + 6, ry + 3, { width: 50 });
-        doc.font(vBold ? 'Helvetica-Bold' : 'Helvetica').fillColor(vClr || C.t).text(val, bx + 58, ry + 3, { width: halfW - 66 });
+        doc.rect(bx + 1, ry, halfW - 2, 0.3).fill(C.br);
+        doc.fontSize(5).font('Helvetica-Bold').fillColor(C.tl).text(label, bx + 6, ry + 3, { width: labelW, lineBreak: false });
+        doc.font(vBold ? 'Helvetica-Bold' : 'Helvetica').fillColor(vClr || C.t).text(val, bx + 6 + labelW, ry + 3, { width: valW, lineBreak: false, ellipsis: true });
         ry += infoRowH;
       });
-      doc.rect(bx, ry, halfW, 0.5).fill(C.brd);
+      doc.rect(bx + 1, ry, halfW - 2, 0.5).fill(C.brd);
+      doc.restore();
     };
 
     drawInfoBox(M, 'PATIENT DETAILS', [
@@ -204,46 +204,50 @@ exports.generateInvoicePDF = async (invoice, patient) => {
     y += infoHeadH + 4 * infoRowH + 1 + 7;
 
     // ═══════════════════════════════════════════════════════
-    //  ITEMS TABLE
+    //  ITEMS TABLE (all values inside cells)
     // ═══════════════════════════════════════════════════════
+    const icPad = 3;
     const ic = [
       { x: M, w: 18, hd: '#', al: 'center' },
-      { x: M + 18, w: 177, hd: 'DESCRIPTION', al: 'left' },
-      { x: M + 197, w: 62, hd: 'CATEGORY', al: 'left' },
-      { x: M + 261, w: 28, hd: 'QTY', al: 'center' },
-      { x: M + 291, w: 72, hd: 'UNIT PRICE', al: 'right' },
-      { x: M + 365, w: 28, hd: 'TAX', al: 'center' },
-      { x: M + 395, w: CW - 367, hd: 'AMOUNT', al: 'right' }
+      { x: M + 18, w: 175, hd: 'DESCRIPTION', al: 'left' },
+      { x: M + 195, w: 62, hd: 'CATEGORY', al: 'left' },
+      { x: M + 259, w: 28, hd: 'QTY', al: 'center' },
+      { x: M + 289, w: 72, hd: 'UNIT PRICE', al: 'right' },
+      { x: M + 363, w: 28, hd: 'TAX', al: 'center' },
+      { x: M + 393, w: CW - 365, hd: 'AMOUNT', al: 'right' }
     ];
     const irH = 13;
 
     // Table header
-    doc.roundedRect(M, y, CW, 14, 2).fill(C.blue);
-    doc.roundedRect(M, y, CW, 14, 2).fill(C.blue);
+    doc.save();
+    doc.rect(M, y, CW, 14).fill(C.blue);
     ic.forEach(col => {
       doc.fontSize(5).font('Helvetica-Bold').fillColor(C.wh)
-        .text(col.hd, col.x + 3, y + 4, { width: col.w - 6, align: col.al, lineBreak: false });
+        .text(col.hd, col.x + icPad, y + 4, { width: col.w - icPad * 2, align: col.al, lineBreak: false });
     });
     ic.forEach((col, i) => { if (i > 0) doc.rect(col.x, y + 2, 0.4, 10).fill(C.wh + '50'); });
+    doc.restore();
     y += 14;
 
     // Data rows
     (invoice.items || []).forEach((item, idx) => {
+      doc.save();
       doc.rect(M, y, CW, irH).fill(idx % 2 === 0 ? C.wh : C.ice2);
       doc.rect(M + 1, y, 2.5, irH).fill(idx % 2 === 0 ? C.blueM : C.sky);
 
       doc.fontSize(5.5).font('Helvetica').fillColor(C.tm);
-      doc.text(`${idx + 1}`, ic[0].x + 3, y + 3.5, { width: ic[0].w - 6, align: 'center', lineBreak: false });
-      doc.font('Helvetica-Bold').fillColor(C.t).text(item.description, ic[1].x + 3, y + 3.5, { width: ic[1].w - 6, lineBreak: false });
-      doc.font('Helvetica').fillColor(C.tl).text(item.category || 'Other', ic[2].x + 3, y + 3.5, { width: ic[2].w - 6, lineBreak: false });
-      doc.text(`${item.quantity}`, ic[3].x + 3, y + 3.5, { width: ic[3].w - 6, align: 'center', lineBreak: false });
-      doc.text(`Rs. ${item.unitPrice.toLocaleString()}`, ic[4].x + 3, y + 3.5, { width: ic[4].w - 6, align: 'right', lineBreak: false });
+      doc.text(`${idx + 1}`, ic[0].x + icPad, y + 3.5, { width: ic[0].w - icPad * 2, align: 'center', lineBreak: false });
+      doc.font('Helvetica-Bold').fillColor(C.t).text(item.description, ic[1].x + icPad, y + 3.5, { width: ic[1].w - icPad * 2, lineBreak: false, ellipsis: true });
+      doc.font('Helvetica').fillColor(C.tl).text(item.category || 'Other', ic[2].x + icPad, y + 3.5, { width: ic[2].w - icPad * 2, lineBreak: false, ellipsis: true });
+      doc.text(`${item.quantity}`, ic[3].x + icPad, y + 3.5, { width: ic[3].w - icPad * 2, align: 'center', lineBreak: false });
+      doc.text(`Rs. ${item.unitPrice.toLocaleString()}`, ic[4].x + icPad, y + 3.5, { width: ic[4].w - icPad * 2, align: 'right', lineBreak: false });
       doc.fillColor(item.isTaxable !== false ? C.greenL : C.mu)
-        .text(item.isTaxable !== false ? 'Yes' : 'No', ic[5].x + 3, y + 3.5, { width: ic[5].w - 6, align: 'center', lineBreak: false });
+        .text(item.isTaxable !== false ? 'Yes' : 'No', ic[5].x + icPad, y + 3.5, { width: ic[5].w - icPad * 2, align: 'center', lineBreak: false });
       doc.font('Helvetica-Bold').fillColor(C.t)
-        .text(`Rs. ${item.total.toLocaleString()}`, ic[6].x + 3, y + 3.5, { width: ic[6].w - 6, align: 'right', lineBreak: false });
+        .text(`Rs. ${item.total.toLocaleString()}`, ic[6].x + icPad, y + 3.5, { width: ic[6].w - icPad * 2, align: 'right', lineBreak: false });
 
       ic.forEach((col, i) => { if (i > 0) doc.rect(col.x, y, 0.3, irH).fill(C.br); });
+      doc.restore();
       y += irH;
     });
 
@@ -259,22 +263,27 @@ exports.generateInvoicePDF = async (invoice, patient) => {
     const secTop = y;
     const secHeadH = 12;
 
-    // ── PAYMENT HISTORY TABLE (left) ──
+    // ── PAYMENT HISTORY TABLE (left, all values inside) ──
+    doc.save();
+    doc.rect(M, secTop, phW, secHeadH).fill(C.blue);
     doc.roundedRect(M, secTop, phW, secHeadH, 2).fill(C.blue);
-    doc.roundedRect(M, secTop, phW, secHeadH, 2).fill(C.blue);
-    doc.fontSize(5.5).font('Helvetica-Bold').fillColor(C.wh)
-      .text(`PAYMENT HISTORY  (${(invoice.payments || []).length} installment${(invoice.payments || []).length !== 1 ? 's' : ''})`, M + 5, secTop + 3, { width: phW - 10 });
+    doc.fontSize(5).font('Helvetica-Bold').fillColor(C.wh)
+      .text(`PAYMENT HISTORY  (${(invoice.payments || []).length})`, M + 5, secTop + 3, { width: phW - 10, lineBreak: false });
+    doc.restore();
 
-    const phColX = [M + 2, M + 14, M + 62, M + 92, M + 136, M + 178];
-    const phColW = [12, 46, 28, 42, 40, phW - 182];
+    const phPad = 2;
+    const phColX = [M + 2, M + 14, M + 60, M + 90, M + 134, M + 176];
+    const phColW = [12, 44, 28, 42, 40, phW - 180];
 
     let phy = secTop + secHeadH;
     // Column headers
+    doc.save();
     doc.rect(M, phy, phW, 8).fill(C.ice);
-    doc.fontSize(4).font('Helvetica-Bold').fillColor(C.tl);
+    doc.fontSize(3.8).font('Helvetica-Bold').fillColor(C.tl);
     ['#', 'DATE', 'METHOD', 'AMOUNT', 'TXN ID', 'NOTES'].forEach((h, i) => {
       doc.text(h, phColX[i], phy + 2, { width: phColW[i], lineBreak: false });
     });
+    doc.restore();
     phy += 8;
     doc.rect(M, phy, phW, 0.3).fill(C.br);
     phy += 0.5;
@@ -283,6 +292,7 @@ exports.generateInvoicePDF = async (invoice, patient) => {
     const maxPhRows = 6;
     const payments = (invoice.payments || []).slice(0, maxPhRows);
     payments.forEach((p, idx) => {
+      doc.save();
       doc.rect(M + 0.5, phy, phW - 1, 9).fill(idx % 2 === 0 ? C.wh : C.ice2);
       doc.fontSize(4.5).font('Helvetica').fillColor(C.tm);
       doc.text(`${p.installmentNumber || idx + 1}`, phColX[0], phy + 2, { width: phColW[0], lineBreak: false });
@@ -291,29 +301,39 @@ exports.generateInvoicePDF = async (invoice, patient) => {
       doc.roundedRect(phColX[2], phy + 1, 26, 7, 1.5).fill(clr);
       doc.fontSize(3.5).font('Helvetica-Bold').fillColor(C.wh).text(p.method, phColX[2] + 1, phy + 2.5, { width: 24, align: 'center', lineBreak: false });
       doc.font('Helvetica-Bold').fillColor(C.t).text(`Rs. ${p.amount.toLocaleString()}`, phColX[3], phy + 2, { width: phColW[3], lineBreak: false });
-      doc.font('Helvetica').fillColor(C.tl).text(p.transactionId || '-', phColX[4], phy + 2, { width: phColW[4], lineBreak: false });
-      doc.text(p.notes || '-', phColX[5], phy + 2, { width: phColW[5], lineBreak: false });
+      doc.font('Helvetica').fillColor(C.tl).text(p.transactionId || '-', phColX[4], phy + 2, { width: phColW[4], lineBreak: false, ellipsis: true });
+      doc.text(p.notes || '-', phColX[5], phy + 2, { width: phColW[5], lineBreak: false, ellipsis: true });
       phColX.forEach((cx, ci) => { if (ci > 0) doc.rect(cx - 1, phy, 0.3, 9).fill(C.br); });
+      doc.restore();
       phy += 9;
       if (p.splitPayments?.length > 1) {
-        doc.fontSize(3.5).fillColor(C.mu).text('  Split: ' + p.splitPayments.map(sp => `${sp.method}: Rs.${sp.amount.toLocaleString()}`).join(' | '), phColX[1], phy, { width: phW - 20, lineBreak: false });
+        doc.save();
+        doc.rect(M + 0.5, phy, phW - 1, 6).fill(C.ice);
+        doc.fontSize(3.5).fillColor(C.mu).text('  Split: ' + p.splitPayments.map(sp => `${sp.method}: Rs.${sp.amount.toLocaleString()}`).join(' | '), phColX[1], phy + 1, { width: phW - phColX[1] + M - 4, lineBreak: false, ellipsis: true });
+        doc.restore();
         phy += 6;
       }
     });
     if ((invoice.payments || []).length > maxPhRows) {
+      doc.save();
       doc.fontSize(3.5).fillColor(C.mu).text(`  ... and ${(invoice.payments || []).length - maxPhRows} more`, phColX[1], phy, { width: phW - 20, lineBreak: false });
+      doc.restore();
       phy += 6;
     }
     doc.rect(M, phy, phW, 0.4).fill(C.brd);
     phy += 1;
 
-    // ── BILLING SUMMARY TABLE (right) ──
+    // ── BILLING SUMMARY TABLE (right, all values inside) ──
+    doc.save();
+    doc.rect(sumX, secTop, sumW, secHeadH).fill(C.blue);
     doc.roundedRect(sumX, secTop, sumW, secHeadH, 2).fill(C.blue);
-    doc.roundedRect(sumX, secTop, sumW, secHeadH, 2).fill(C.blue);
-    doc.fontSize(5.5).font('Helvetica-Bold').fillColor(C.wh).text('BILLING SUMMARY', sumX + 5, secTop + 3, { width: sumW - 10 });
+    doc.fontSize(5).font('Helvetica-Bold').fillColor(C.wh).text('BILLING SUMMARY', sumX + 5, secTop + 3, { width: sumW - 10, lineBreak: false });
+    doc.restore();
 
     let sY = secTop + secHeadH;
     const bsRowH = 11;
+    const bsLabelW = 82;
+    const bsValW = sumW - bsLabelW - 14;
     const sumRows = [
       ['Subtotal', `Rs. ${(invoice.subtotal || 0).toLocaleString()}`, C.tm, false],
       [`VAT (${invoice.taxRate || 13}%)`, `Rs. ${(invoice.taxAmount || 0).toLocaleString()}`, C.tm, false],
@@ -324,19 +344,23 @@ exports.generateInvoicePDF = async (invoice, patient) => {
     sumRows.push(['Balance Due', `Rs. ${balance.toLocaleString()}`, balance > 0 ? C.red : C.greenL, true]);
 
     sumRows.forEach(([label, val, color, bold], idx) => {
-      doc.rect(sumX, sY, sumW, bsRowH).fill(idx % 2 === 0 ? C.wh : C.ice2);
-      doc.rect(sumX, sY, sumW, 0.3).fill(C.br);
-      doc.fontSize(bold ? 5.5 : 5).font('Helvetica').fillColor(C.tl).text(label, sumX + 5, sY + 3, { width: 85, lineBreak: false });
-      doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').fillColor(color).text(val, sumX + 90, sY + 3, { width: sumW - 95, align: 'right', lineBreak: false });
+      doc.save();
+      doc.rect(sumX + 1, sY, sumW - 2, bsRowH).fill(idx % 2 === 0 ? C.wh : C.ice2);
+      doc.rect(sumX + 1, sY, sumW - 2, 0.3).fill(C.br);
+      doc.fontSize(bold ? 5.5 : 5).font('Helvetica').fillColor(C.tl).text(label, sumX + 5, sY + 3, { width: bsLabelW, lineBreak: false });
+      doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').fillColor(color).text(val, sumX + 5 + bsLabelW, sY + 3, { width: bsValW, align: 'right', lineBreak: false });
+      doc.restore();
       sY += bsRowH;
     });
-    doc.rect(sumX, sY, sumW, 0.4).fill(C.brd);
+    doc.rect(sumX + 1, sY, sumW - 2, 0.4).fill(C.brd);
     sY += 2;
 
     // Status badge under billing
+    doc.save();
     doc.roundedRect(sumX, sY, sumW, 11, 2).fill(sc.bg);
     doc.roundedRect(sumX, sY, sumW, 11, 2).lineWidth(0.4).stroke(sc.bd);
-    doc.fontSize(5.5).font('Helvetica-Bold').fillColor(sc.fg).text(`${sc.icon} STATUS: ${sc.l}`, sumX + 4, sY + 2.5, { width: sumW - 8, align: 'center' });
+    doc.fontSize(5.5).font('Helvetica-Bold').fillColor(sc.fg).text(`${sc.icon} STATUS: ${sc.l}`, sumX + 5, sY + 2.5, { width: sumW - 10, align: 'center', lineBreak: false });
+    doc.restore();
     sY += 14;
 
     y = Math.max(phy, sY) + 6;
@@ -350,10 +374,12 @@ exports.generateInvoicePDF = async (invoice, patient) => {
     const sigW = (CW - 10) / 3;
     const sigH = 26;
     const drawSig = (sx, title, line, align) => {
+      doc.save();
       doc.roundedRect(sx, y, sigW, sigH, 2).fillAndStroke(C.wh, C.brd);
       doc.moveTo(sx + 5, y + 13).lineTo(sx + sigW - 5, y + 13).stroke(C.brd);
       doc.fontSize(4.5).font('Helvetica-Bold').fillColor(C.t).text(title, sx + 5, y + 15, { width: sigW - 10, align, lineBreak: false });
       doc.fontSize(3.5).font('Helvetica').fillColor(C.tl).text(line, sx + 5, y + 21, { width: sigW - 10, align, lineBreak: false });
+      doc.restore();
     };
     drawSig(M, 'Authorized Signatory', `Date: ${new Date().toLocaleDateString('en-NP')}`, 'left');
     drawSig(M + sigW + 5, 'Hospital Stamp / Seal', 'SEAL', 'center');
@@ -366,9 +392,9 @@ exports.generateInvoicePDF = async (invoice, patient) => {
     doc.rect(M, y, CW, 0.3).fill(C.br);
     y += 3;
     doc.roundedRect(M, y, CW, 14, 2).fillAndStroke(C.ice, C.br);
-    doc.fontSize(4).font('Helvetica-Bold').fillColor(C.blue).text('Terms:', M + 5, y + 1, { width: 22, lineBreak: false });
+    doc.fontSize(4).font('Helvetica-Bold').fillColor(C.blue).text('Terms:', M + 5, y + 1, { width: 24, lineBreak: false });
     doc.fontSize(3.5).font('Helvetica').fillColor(C.tl)
-      .text(invoice.termsAndConditions || 'Thank you for choosing Lincoln International Hospital. Payments are non-refundable. Please confirm all details before payment.', M + 28, y + 1, { width: CW - 33, lineBreak: false });
+      .text(invoice.termsAndConditions || 'Thank you for choosing Lincoln International Hospital. Payments are non-refundable. Please confirm all details before payment.', M + 30, y + 1, { width: CW - 36, lineBreak: false, ellipsis: true });
     y += 18;
 
     // ═══════════════════════════════════════════════════════
