@@ -210,11 +210,11 @@ exports.generateInvoicePDF = async (invoice, patient) => {
     const ic = [
       { x: M, w: 18, hd: '#', al: 'center' },
       { x: M + 18, w: 175, hd: 'DESCRIPTION', al: 'left' },
-      { x: M + 195, w: 62, hd: 'CATEGORY', al: 'left' },
-      { x: M + 259, w: 28, hd: 'QTY', al: 'center' },
-      { x: M + 289, w: 72, hd: 'UNIT PRICE', al: 'right' },
-      { x: M + 363, w: 28, hd: 'TAX', al: 'center' },
-      { x: M + 393, w: CW - 365, hd: 'AMOUNT', al: 'right' }
+      { x: M + 193, w: 58, hd: 'CATEGORY', al: 'left' },
+      { x: M + 251, w: 28, hd: 'QTY', al: 'center' },
+      { x: M + 279, w: 68, hd: 'UNIT PRICE', al: 'right' },
+      { x: M + 347, w: 28, hd: 'TAX', al: 'center' },
+      { x: M + 375, w: CW - 375, hd: 'AMOUNT', al: 'right' }
     ];
     const irH = 13;
 
