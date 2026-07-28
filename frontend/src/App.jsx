@@ -9,18 +9,34 @@ import Prescriptions from './pages/Prescriptions';
 import Billing from './pages/Billing';
 import Vitals from './pages/Vitals';
 import Pharmacy from './pages/Pharmacy';
+import Laboratory from './pages/Laboratory';
+import Inpatient from './pages/Inpatient';
+import Staff from './pages/Staff';
+import Inventory from './pages/Inventory';
+import Notifications from './pages/Notifications';
+import AuditLogs from './pages/AuditLogs';
+import Insurance from './pages/Insurance';
+import MedicalRecords from './pages/MedicalRecords';
 
 function Sidebar({ user, onLogout }) {
   const location = useLocation();
   
   const links = [
-    { path: '/', label: 'Dashboard', icon: '📊', roles: ['admin', 'doctor', 'receptionist'] },
+    { path: '/', label: 'Dashboard', icon: '📊', roles: ['admin', 'doctor', 'receptionist', 'pharmacist', 'accountant', 'nurse', 'lab technician'] },
     { path: '/patients', label: 'Patients', icon: '👥', roles: ['admin', 'doctor', 'receptionist'] },
     { path: '/appointments', label: 'Appointments', icon: '📅', roles: ['admin', 'doctor', 'receptionist'] },
     { path: '/prescriptions', label: 'Prescriptions', icon: '💊', roles: ['admin', 'doctor'] },
-    { path: '/vitals', label: 'Vitals', icon: '💓', roles: ['admin', 'doctor'] },
-    { path: '/billing', label: 'Billing', icon: '💰', roles: ['admin', 'doctor', 'receptionist'] },
-    { path: '/pharmacy', label: 'Pharmacy', icon: '🧪', roles: ['admin', 'doctor'] }
+    { path: '/vitals', label: 'Vitals', icon: '💓', roles: ['admin', 'doctor', 'nurse'] },
+    { path: '/medical-records', label: 'EMR', icon: '📋', roles: ['admin', 'doctor', 'nurse'] },
+    { path: '/billing', label: 'Billing', icon: '💰', roles: ['admin', 'doctor', 'receptionist', 'accountant'] },
+    { path: '/pharmacy', label: 'Pharmacy', icon: '🧪', roles: ['admin', 'doctor', 'pharmacist'] },
+    { path: '/laboratory', label: 'Laboratory', icon: '🔬', roles: ['admin', 'doctor', 'lab technician'] },
+    { path: '/inpatient', label: 'Inpatient', icon: '🏥', roles: ['admin', 'doctor', 'nurse'] },
+    { path: '/staff', label: 'Staff', icon: '👨‍⚕️', roles: ['admin'] },
+    { path: '/inventory', label: 'Inventory', icon: '📦', roles: ['admin', 'pharmacist'] },
+    { path: '/insurance', label: 'Insurance', icon: '🛡️', roles: ['admin', 'receptionist', 'accountant'] },
+    { path: '/notifications', label: 'Notifications', icon: '🔔', roles: ['admin', 'doctor', 'receptionist', 'pharmacist', 'accountant', 'nurse', 'lab technician'] },
+    { path: '/audit-logs', label: 'Audit Logs', icon: '📜', roles: ['admin'] }
   ];
 
   const filteredLinks = links.filter(link => link.roles.includes(user?.role));
@@ -28,12 +44,15 @@ function Sidebar({ user, onLogout }) {
   const roleColors = {
     admin: 'from-accent-500 to-accent-600',
     doctor: 'from-primary-500 to-primary-600',
-    receptionist: 'from-green-500 to-green-600'
+    receptionist: 'from-green-500 to-green-600',
+    pharmacist: 'from-teal-500 to-teal-600',
+    accountant: 'from-yellow-500 to-yellow-600',
+    nurse: 'from-pink-500 to-pink-600',
+    'lab technician': 'from-purple-500 to-purple-600'
   };
 
   return (
     <div className="w-72 bg-dark-950 text-white min-h-screen flex flex-col border-r border-dark-800/50">
-      {/* Header */}
       <div className="p-6 border-b border-dark-800/50 bg-gradient-to-b from-dark-900 to-dark-950">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center shadow-lg shadow-primary-600/30">
@@ -49,19 +68,18 @@ function Sidebar({ user, onLogout }) {
         <p className="text-xs text-dark-400 pl-15">Dhobidhara, Kathmandu, Nepal</p>
       </div>
 
-      {/* Navigation */}
-      <nav className="p-4 flex-1 space-y-2">
+      <nav className="p-4 flex-1 space-y-1 overflow-y-auto">
         {filteredLinks.map((link) => (
           <Link
             key={link.path}
             to={link.path}
-            className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 group ${
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group text-sm ${
               location.pathname === link.path
                 ? 'bg-gradient-to-r from-primary-600/20 to-primary-700/20 text-white border border-primary-500/30 shadow-lg shadow-primary-600/10'
                 : 'text-dark-300 hover:bg-dark-800/50 hover:text-white border border-transparent'
             }`}
           >
-            <span className={`text-xl ${location.pathname === link.path ? 'scale-110' : 'group-hover:scale-105'} transition-transform`}>
+            <span className={`text-lg ${location.pathname === link.path ? 'scale-110' : 'group-hover:scale-105'} transition-transform`}>
               {link.icon}
             </span>
             <span className="font-medium">{link.label}</span>
@@ -72,7 +90,6 @@ function Sidebar({ user, onLogout }) {
         ))}
       </nav>
 
-      {/* User Profile */}
       <div className="p-4 border-t border-dark-800/50 bg-dark-900/30">
         <div className="flex items-center gap-3 mb-4 p-3 bg-dark-800/30 rounded-xl border border-dark-700/30">
           <div className={`w-10 h-10 bg-gradient-to-br ${roleColors[user?.role] || 'from-primary-500 to-primary-600'} rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg`}>
@@ -170,8 +187,16 @@ function App() {
             <Route path="/appointments" element={<Appointments user={user} />} />
             <Route path="/prescriptions" element={<Prescriptions user={user} />} />
             <Route path="/vitals" element={<Vitals user={user} />} />
+            <Route path="/medical-records" element={<MedicalRecords user={user} />} />
             <Route path="/billing" element={<Billing user={user} />} />
             <Route path="/pharmacy" element={<Pharmacy user={user} />} />
+            <Route path="/laboratory" element={<Laboratory user={user} />} />
+            <Route path="/inpatient" element={<Inpatient user={user} />} />
+            <Route path="/staff" element={<Staff user={user} />} />
+            <Route path="/inventory" element={<Inventory user={user} />} />
+            <Route path="/insurance" element={<Insurance user={user} />} />
+            <Route path="/notifications" element={<Notifications user={user} />} />
+            <Route path="/audit-logs" element={<AuditLogs user={user} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

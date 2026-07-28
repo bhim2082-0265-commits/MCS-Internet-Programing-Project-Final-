@@ -47,7 +47,7 @@ const doctorSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['doctor', 'admin', 'receptionist'],
+    enum: ['doctor', 'admin', 'receptionist', 'pharmacist', 'accountant', 'lab technician', 'nurse', 'patient'],
     default: 'doctor'
   },
   schedule: {
