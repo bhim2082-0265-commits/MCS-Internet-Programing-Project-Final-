@@ -125,6 +125,9 @@ const invoiceSchema = new mongoose.Schema({
   termsAndConditions: {
     type: String,
     default: 'Thank you for choosing Lincoln International Hospital and Research Center. Please note that payments are non-refundable. Kindly confirm all details before making a payment.'
+  },
+  pdfFile: {
+    type: String
   }
 }, {
   timestamps: true

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { appointmentAPI, patientAPI, authAPI } from '../services/api';
+import { appointmentAPI, patientAPI, authAPI, invoiceAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 function Appointments({ user }) {
@@ -22,6 +22,9 @@ function Appointments({ user }) {
     time: '09:00',
     reason: ''
   });
+  const [showBillsModal, setShowBillsModal] = useState(false);
+  const [billsPatient, setBillsPatient] = useState(null);
+  const [billsData, setBillsData] = useState({ pending: [], all: [] });
 
   useEffect(() => {
     fetchAppointments();
@@ -106,6 +109,17 @@ function Appointments({ user }) {
       await appointmentAPI.update(id, { status });
       toast.success('Status updated');
       fetchAppointments();
+      if (status === 'Completed') {
+        const apt = appointments.find(a => a._id === id);
+        if (apt?.patientId?._id) {
+          try {
+            const res = await invoiceAPI.getPatientBills(apt.patientId._id);
+            setBillsPatient(apt.patientId);
+            setBillsData(res.data);
+            setShowBillsModal(true);
+          } catch (e) {}
+        }
+      }
     } catch (error) {
       toast.error('Failed to update status');
     }
@@ -336,6 +350,83 @@ function Appointments({ user }) {
                 <button type="submit" className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-600/30">Book Appointment</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* ═══════════════ PENDING BILLS MODAL ═══════════════ */}
+      {showBillsModal && billsPatient && (
+        <div className="fixed inset-0 bg-dark-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-dark-900 border border-dark-700/50 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-dark-700/50 bg-gradient-to-r from-primary-900/30 to-dark-800/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-white">Patient Billing Summary</h2>
+                  <p className="text-sm text-dark-400 mt-1">{billsPatient.firstName} {billsPatient.lastName} ({billsPatient.mrn})</p>
+                </div>
+                <button onClick={() => setShowBillsModal(false)} className="p-2 hover:bg-dark-800 rounded-lg transition-colors">
+                  <svg className="w-5 h-5 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              {billsData.pending.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-amber-400 mb-3 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                    Pending Bills ({billsData.pending.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {billsData.pending.map(inv => {
+                      const balance = inv.totalAmount - inv.amountPaid;
+                      return (
+                        <div key={inv._id} className="flex items-center justify-between bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
+                          <div>
+                            <span className="text-sm font-semibold text-primary-400">{inv.invoiceNumber}</span>
+                            <p className="text-xs text-dark-400 mt-0.5">{inv.doctorName} — {new Date(inv.createdAt).toLocaleDateString('en-NP')}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-white">Rs. {inv.totalAmount.toLocaleString()}</p>
+                            <p className="text-xs text-amber-400">Balance: Rs. {balance.toLocaleString()}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {billsData.all.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-dark-300 mb-3">All Invoices ({billsData.all.length})</h3>
+                  <div className="space-y-2">
+                    {billsData.all.map(inv => (
+                      <div key={inv._id} className="flex items-center justify-between bg-dark-800/50 border border-dark-700/30 rounded-xl p-4">
+                        <div>
+                          <span className="text-sm font-semibold text-primary-400">{inv.invoiceNumber}</span>
+                          <p className="text-xs text-dark-400 mt-0.5">{inv.doctorName} — Rs. {inv.totalAmount.toLocaleString()}</p>
+                        </div>
+                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                          inv.status === 'Paid' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                          inv.status === 'Partial' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
+                          'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                        }`}>
+                          {inv.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {billsData.all.length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-dark-400">No invoices found for this patient</p>
+                </div>
+              )}
+              <div className="flex justify-end pt-4 border-t border-dark-700/30">
+                <button onClick={() => setShowBillsModal(false)} className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all">
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -14,6 +14,9 @@ function Billing({ user }) {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [filterStatus, setFilterStatus] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
+  const [patientSearchId, setPatientSearchId] = useState('');
+  const [patientBills, setPatientBills] = useState(null);
   const [formData, setFormData] = useState({
     patientId: '',
     doctorName: '',
@@ -80,6 +83,16 @@ function Billing({ user }) {
       setDoctors(res.data);
     } catch (error) {
       console.error('Error:', error);
+    }
+  };
+
+  const fetchPatientBills = async (patientId) => {
+    if (!patientId) { setPatientBills(null); return; }
+    try {
+      const res = await invoiceAPI.getPatientBills(patientId);
+      setPatientBills(res.data);
+    } catch (error) {
+      toast.error('Failed to fetch patient bills');
     }
   };
 
@@ -435,19 +448,123 @@ function Billing({ user }) {
       </div>
 
       <div className="flex flex-col md:flex-row gap-3">
-        <input type="text" placeholder="Search by invoice #, patient name, MRN, or phone number..." value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 px-4 py-3 bg-dark-900/50 border border-dark-700/50 rounded-xl text-white placeholder-dark-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all" />
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-4 py-3 bg-dark-900/50 border border-dark-700/50 rounded-xl text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all">
-          <option value="" className="bg-dark-800">All Status</option>
-          <option value="Pending" className="bg-dark-800">Pending</option>
-          <option value="Partial" className="bg-dark-800">Partial</option>
-          <option value="Paid" className="bg-dark-800">Paid</option>
-          <option value="Cancelled" className="bg-dark-800">Cancelled</option>
-        </select>
+        <div className="flex gap-2">
+          <button onClick={() => { setActiveTab('all'); setPatientBills(null); setPatientSearchId(''); }}
+            className={`px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'all' ? 'bg-primary-600 text-white' : 'bg-dark-800/50 text-dark-300 border border-dark-700/50 hover:bg-dark-700/50'}`}>
+            All Bills
+          </button>
+          <button onClick={() => setActiveTab('patient')}
+            className={`px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'patient' ? 'bg-primary-600 text-white' : 'bg-dark-800/50 text-dark-300 border border-dark-700/50 hover:bg-dark-700/50'}`}>
+            Patient Bills
+          </button>
+        </div>
+        {activeTab === 'all' ? (
+          <>
+            <input type="text" placeholder="Search by invoice #, patient name, MRN, or phone number..." value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1 px-4 py-3 bg-dark-900/50 border border-dark-700/50 rounded-xl text-white placeholder-dark-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all" />
+            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-4 py-3 bg-dark-900/50 border border-dark-700/50 rounded-xl text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all">
+              <option value="" className="bg-dark-800">All Status</option>
+              <option value="Pending" className="bg-dark-800">Pending</option>
+              <option value="Partial" className="bg-dark-800">Partial</option>
+              <option value="Paid" className="bg-dark-800">Paid</option>
+              <option value="Cancelled" className="bg-dark-800">Cancelled</option>
+            </select>
+          </>
+        ) : (
+          <select value={patientSearchId} onChange={(e) => { setPatientSearchId(e.target.value); fetchPatientBills(e.target.value); }}
+            className="flex-1 px-4 py-3 bg-dark-900/50 border border-dark-700/50 rounded-xl text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all">
+            <option value="" className="bg-dark-800">Select Patient to view bills</option>
+            {patients.map(p => (
+              <option key={p._id} value={p._id} className="bg-dark-800">{p.firstName} {p.lastName} ({p.mrn})</option>
+            ))}
+          </select>
+        )}
       </div>
 
+      {/* ═══════════════ PATIENT BILLS VIEW ═══════════════ */}
+      {activeTab === 'patient' && patientBills && (
+        <div className="space-y-4">
+          {patientBills.pending.length > 0 && (
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6">
+              <h3 className="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                Pending Bills ({patientBills.pending.length})
+              </h3>
+              <div className="space-y-3">
+                {patientBills.pending.map(inv => {
+                  const balance = inv.totalAmount - inv.amountPaid;
+                  return (
+                    <div key={inv._id} className="flex items-center justify-between bg-dark-900/50 border border-dark-700/30 rounded-xl p-4">
+                      <div className="flex items-center gap-4">
+                        <div>
+                          <span className="text-sm font-semibold text-primary-400">{inv.invoiceNumber}</span>
+                          <p className="text-xs text-dark-400 mt-0.5">{inv.doctorName} — {inv.doctorDepartment}</p>
+                          <p className="text-xs text-dark-500">{new Date(inv.createdAt).toLocaleDateString('en-NP')}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-white">Rs. {inv.totalAmount.toLocaleString()}</p>
+                          <p className="text-xs text-amber-400">Balance: Rs. {balance.toLocaleString()}</p>
+                        </div>
+                        {inv.status !== 'Paid' && inv.status !== 'Cancelled' && (
+                          <button onClick={() => openPayModal(inv)} className="px-3 py-2 text-xs font-semibold text-green-400 bg-green-500/10 border border-green-500/20 rounded-lg hover:bg-green-500/20 transition-colors">
+                            Pay Now
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {patientBills.all.length > 0 && (
+            <div className="bg-dark-900/50 border border-dark-700/50 rounded-2xl p-6">
+              <h3 className="text-lg font-bold text-white mb-4">All Invoices ({patientBills.all.length})</h3>
+              <div className="space-y-3">
+                {patientBills.all.map(inv => {
+                  const balance = inv.totalAmount - inv.amountPaid;
+                  const pct = inv.totalAmount > 0 ? Math.min(Math.round((inv.amountPaid / inv.totalAmount) * 100), 100) : 0;
+                  return (
+                    <div key={inv._id} className="flex items-center justify-between bg-dark-800/50 border border-dark-700/30 rounded-xl p-4">
+                      <div>
+                        <span className="text-sm font-semibold text-primary-400">{inv.invoiceNumber}</span>
+                        <p className="text-xs text-dark-400 mt-0.5">{inv.doctorName} — Rs. {inv.totalAmount.toLocaleString()}</p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="w-24">
+                          <div className="bg-dark-700/50 rounded-full h-2 overflow-hidden">
+                            <div className={`h-full rounded-full ${pct >= 100 ? 'bg-green-500' : 'bg-amber-500'}`} style={{ width: `${pct}%` }}></div>
+                          </div>
+                          <p className="text-[10px] text-dark-400 mt-1">{pct}% paid</p>
+                        </div>
+                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                          inv.status === 'Paid' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                          inv.status === 'Partial' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
+                          'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                        }`}>
+                          {inv.status}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {patientBills.all.length === 0 && (
+            <div className="bg-dark-900/50 border border-dark-700/50 rounded-2xl p-12 text-center">
+              <p className="text-dark-400 text-lg">No invoices found for this patient</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══════════════ ALL BILLS TABLE ═══════════════ */}
+      {activeTab === 'all' && (
       <div className="bg-dark-900/50 backdrop-blur-sm rounded-2xl border border-dark-700/50 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -556,6 +673,7 @@ function Billing({ user }) {
           </table>
         </div>
       </div>
+      )}
 
       {/* ═══════════════ CREATE INVOICE MODAL ═══════════════ */}
       {showModal && (

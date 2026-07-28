@@ -1,6 +1,10 @@
 const Appointment = require('../models/Appointment');
 const Invoice = require('../models/Invoice');
 const Doctor = require('../models/Doctor');
+const Patient = require('../models/Patient');
+const { generateInvoicePDF } = require('../utils/pdfGenerator');
+const fs = require('fs');
+const path = require('path');
 
 exports.createAppointment = async (req, res) => {
   try {
@@ -141,6 +145,20 @@ exports.updateAppointment = async (req, res) => {
         });
 
         await invoice.save();
+
+        try {
+          const populatedInvoice = await invoice.populate('patientId');
+          const patient = populatedInvoice.patientId;
+          const pdfBuffer = await generateInvoicePDF(populatedInvoice, patient);
+          const invoicesDir = path.join(__dirname, '..', 'invoices');
+          if (!fs.existsSync(invoicesDir)) fs.mkdirSync(invoicesDir, { recursive: true });
+          const fileName = `${populatedInvoice.invoiceNumber}_${patient.firstName}_${patient.lastName}_${new Date().toISOString().split('T')[0]}.pdf`;
+          fs.writeFileSync(path.join(invoicesDir, fileName), pdfBuffer);
+          invoice.pdfFile = fileName;
+          await invoice.save();
+        } catch (pdfErr) {
+          console.error('PDF save error:', pdfErr.message);
+        }
 
         if (io) {
           io.to('reception').emit('queue_updated', {

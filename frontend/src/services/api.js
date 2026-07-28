@@ -77,7 +77,8 @@ export const invoiceAPI = {
   addPayment: (id, data) => api.post(`/invoices/${id}/payments`, data),
   generatePDF: (id) => api.get(`/invoices/${id}/pdf`, { responseType: 'blob' }),
   adjust: (id, data) => api.put(`/invoices/${id}/adjust`, data),
-  delete: (id) => api.delete(`/invoices/${id}`)
+  delete: (id) => api.delete(`/invoices/${id}`),
+  getPatientBills: (patientId) => api.get(`/invoices/patient/${patientId}`)
 };
 
 export const vitalsAPI = {

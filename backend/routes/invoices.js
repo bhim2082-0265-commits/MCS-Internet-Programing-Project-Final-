@@ -8,12 +8,14 @@ const {
   addPayment,
   generatePDF,
   deleteInvoice,
-  adjustInvoice
+  adjustInvoice,
+  getPatientPendingBills
 } = require('../controllers/invoiceController');
 const { auth } = require('../middleware/auth');
 
 router.post('/', auth, createInvoice);
 router.get('/', auth, getInvoices);
+router.get('/patient/:patientId', auth, getPatientPendingBills);
 router.get('/:id', auth, getInvoiceById);
 router.get('/:id/pdf', auth, generatePDF);
 router.put('/:id/pay', auth, markAsPaid);

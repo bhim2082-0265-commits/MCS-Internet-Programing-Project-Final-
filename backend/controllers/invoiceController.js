@@ -210,6 +210,20 @@ exports.deleteInvoice = async (req, res) => {
   }
 };
 
+exports.getPatientPendingBills = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const invoices = await Invoice.find({ patientId })
+      .populate('patientId')
+      .sort({ createdAt: -1 });
+    const pending = invoices.filter(inv => inv.status === 'Pending' || inv.status === 'Partial');
+    const allInvoices = invoices;
+    res.json({ pending, all: allInvoices });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.adjustInvoice = async (req, res) => {
   try {
     const { action, itemIndex, item, discount, taxRate, notes } = req.body;
