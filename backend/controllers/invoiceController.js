@@ -1,6 +1,24 @@
 const Invoice = require('../models/Invoice');
 const Patient = require('../models/Patient');
 const { generateInvoicePDF } = require('../utils/pdfGenerator');
+const fs = require('fs');
+const path = require('path');
+
+const saveInvoicePDF = async (invoice) => {
+  try {
+    const patient = invoice.patientId;
+    if (!patient) return;
+    const pdfBuffer = await generateInvoicePDF(invoice, patient);
+    const invoicesDir = path.join(__dirname, '..', 'invoices');
+    if (!fs.existsSync(invoicesDir)) fs.mkdirSync(invoicesDir, { recursive: true });
+    const fileName = `${invoice.invoiceNumber}_${patient.firstName}_${patient.lastName}_${new Date().toISOString().split('T')[0]}.pdf`;
+    fs.writeFileSync(path.join(invoicesDir, fileName), pdfBuffer);
+    invoice.pdfFile = fileName;
+    await invoice.save();
+  } catch (pdfErr) {
+    console.error('PDF save error:', pdfErr.message);
+  }
+};
 
 exports.createInvoice = async (req, res) => {
   try {
@@ -39,6 +57,7 @@ exports.createInvoice = async (req, res) => {
     
     await invoice.save();
     const populated = await invoice.populate('patientId');
+    await saveInvoicePDF(populated);
     res.status(201).json(populated);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -120,6 +139,7 @@ exports.markAsPaid = async (req, res) => {
     invoice.markModified('payments');
     await invoice.save();
     const populated = await invoice.populate('patientId');
+    await saveInvoicePDF(populated);
     res.json(populated);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -177,6 +197,7 @@ exports.addPayment = async (req, res) => {
     invoice.markModified('payments');
     await invoice.save();
     const populated = await invoice.populate('patientId');
+    await saveInvoicePDF(populated);
     res.json(populated);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -296,6 +317,8 @@ exports.adjustInvoice = async (req, res) => {
 
     await invoice.save();
     const populated = await invoice.populate('patientId');
+    await saveInvoicePDF(populated);
+
     res.json(populated);
   } catch (error) {
     res.status(400).json({ message: error.message });
