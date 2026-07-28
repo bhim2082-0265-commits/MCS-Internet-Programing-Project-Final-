@@ -76,6 +76,7 @@ export const invoiceAPI = {
   markAsPaid: (id, data) => api.put(`/invoices/${id}/pay`, data),
   addPayment: (id, data) => api.post(`/invoices/${id}/payments`, data),
   generatePDF: (id) => api.get(`/invoices/${id}/pdf`, { responseType: 'blob' }),
+  adjust: (id, data) => api.put(`/invoices/${id}/adjust`, data),
   delete: (id) => api.delete(`/invoices/${id}`)
 };
 

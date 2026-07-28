@@ -10,6 +10,7 @@ function Billing({ user }) {
   const [showModal, setShowModal] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [filterStatus, setFilterStatus] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,6 +33,13 @@ function Billing({ user }) {
   const [splitPayments, setSplitPayments] = useState([{ method: 'Cash', amount: '', transactionId: '' }]);
   const [processing, setProcessing] = useState(false);
   const [justPaid, setJustPaid] = useState(false);
+
+  const [adjustAction, setAdjustAction] = useState('apply_discount');
+  const [adjustDiscount, setAdjustDiscount] = useState(0);
+  const [adjustTaxRate, setAdjustTaxRate] = useState(13);
+  const [adjustNotes, setAdjustNotes] = useState('');
+  const [adjustItem, setAdjustItem] = useState({ description: '', quantity: 1, unitPrice: 0, isTaxable: true, category: 'Consultation' });
+  const [adjustItemIndex, setAdjustItemIndex] = useState(0);
 
   const categories = ['Consultation', 'Lab Test', 'Procedure', 'Medication', 'Room', 'Other'];
   const paymentMethods = ['Cash', 'Card', 'Bank Transfer', 'eSewa', 'Khalti', 'ConnectIPS', 'Other'];
@@ -303,6 +311,49 @@ function Billing({ user }) {
 
   const getSplitTotal = () => splitPayments.reduce((s, sp) => s + (parseFloat(sp.amount) || 0), 0);
 
+  const openAdjustModal = (invoice) => {
+    setSelectedInvoice(invoice);
+    setAdjustAction('apply_discount');
+    setAdjustDiscount(invoice.discount || 0);
+    setAdjustTaxRate(invoice.taxRate || 13);
+    setAdjustNotes(invoice.notes || '');
+    setAdjustItem({ description: '', quantity: 1, unitPrice: 0, isTaxable: true, category: 'Consultation' });
+    setAdjustItemIndex(0);
+    setShowAdjustModal(true);
+  };
+
+  const handleAdjust = async (e) => {
+    e.preventDefault();
+    try {
+      let data = {};
+      switch (adjustAction) {
+        case 'apply_discount':
+          data = { action: 'apply_discount', discount: parseFloat(adjustDiscount) || 0 };
+          break;
+        case 'update_tax':
+          data = { action: 'update_tax', taxRate: parseFloat(adjustTaxRate) || 13 };
+          break;
+        case 'update_notes':
+          data = { action: 'update_notes', notes: adjustNotes };
+          break;
+        case 'add_item':
+          data = { action: 'add_item', item: { ...adjustItem, total: adjustItem.quantity * adjustItem.unitPrice } };
+          break;
+        case 'remove_item':
+          data = { action: 'remove_item', itemIndex: parseInt(adjustItemIndex) };
+          break;
+        default:
+          return;
+      }
+      await invoiceAPI.adjust(selectedInvoice._id, data);
+      toast.success('Invoice adjusted successfully');
+      setShowAdjustModal(false);
+      fetchInvoices();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to adjust invoice');
+    }
+  };
+
   const totals = calculateTotals();
 
   const filteredInvoices = invoices.filter(inv => {
@@ -435,6 +486,11 @@ function Billing({ user }) {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-sm font-semibold text-primary-400">{inv.invoiceNumber}</span>
                         <p className="text-xs text-dark-500 mt-0.5">{new Date(inv.createdAt).toLocaleDateString('en-NP')}</p>
+                        {inv.appointmentId && (
+                          <span className="inline-block mt-1 px-1.5 py-0.5 text-[9px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded">
+                            AUTO-GENERATED
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-sm font-medium text-white">{inv.patientId?.firstName} {inv.patientId?.lastName}</span>
@@ -478,6 +534,11 @@ function Billing({ user }) {
                           {inv.status !== 'Paid' && inv.status !== 'Cancelled' && (
                             <button onClick={() => openPayModal(inv)} className="px-2.5 py-1.5 text-xs font-semibold text-green-400 bg-green-500/10 border border-green-500/20 rounded-lg hover:bg-green-500/20 transition-colors" title="Add Payment">
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            </button>
+                          )}
+                          {inv.status !== 'Paid' && inv.status !== 'Cancelled' && (
+                            <button onClick={() => openAdjustModal(inv)} className="px-2.5 py-1.5 text-xs font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg hover:bg-amber-500/20 transition-colors" title="Adjust Invoice">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
                             </button>
                           )}
                           {user?.role === 'admin' && (
@@ -997,6 +1058,118 @@ function Billing({ user }) {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      {/* ═══════════════ ADJUSTMENT MODAL ═══════════════ */}
+      {showAdjustModal && selectedInvoice && (
+        <div className="fixed inset-0 bg-dark-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-dark-900 border border-dark-700/50 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-dark-700/50 bg-gradient-to-r from-amber-900/20 to-dark-800/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-white">Billing Adjustment</h2>
+                  <p className="text-sm text-dark-400 mt-1">{selectedInvoice.invoiceNumber} — {selectedInvoice.patientId?.firstName} {selectedInvoice.patientId?.lastName}</p>
+                </div>
+                <button onClick={() => setShowAdjustModal(false)} className="p-2 hover:bg-dark-800 rounded-lg transition-colors">
+                  <svg className="w-5 h-5 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+            <form onSubmit={handleAdjust} className="p-6 space-y-4">
+              <div className="bg-dark-800/50 rounded-xl p-4 border border-dark-700/30">
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div>
+                    <p className="text-[10px] text-dark-400 uppercase">Subtotal</p>
+                    <p className="text-sm font-bold text-white">Rs. {selectedInvoice.subtotal?.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-dark-400 uppercase">Discount</p>
+                    <p className="text-sm font-bold text-amber-400">Rs. {(selectedInvoice.discount || 0).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-dark-400 uppercase">Total</p>
+                    <p className="text-sm font-bold text-primary-400">Rs. {selectedInvoice.totalAmount?.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm text-dark-400 mb-2 block">Adjustment Type *</label>
+                <select value={adjustAction} onChange={(e) => setAdjustAction(e.target.value)}
+                  className="w-full px-4 py-3 bg-dark-800/50 border border-dark-600/50 rounded-xl text-white focus:ring-2 focus:ring-primary-500 transition-all">
+                  <option value="apply_discount" className="bg-dark-800">Apply/Update Discount</option>
+                  <option value="update_tax" className="bg-dark-800">Update Tax Rate</option>
+                  <option value="add_item" className="bg-dark-800">Add Line Item</option>
+                  <option value="remove_item" className="bg-dark-800">Remove Line Item</option>
+                  <option value="update_notes" className="bg-dark-800">Update Notes</option>
+                </select>
+              </div>
+
+              {adjustAction === 'apply_discount' && (
+                <div>
+                  <label className="text-sm text-dark-400 mb-2 block">Discount Amount (NPR)</label>
+                  <input type="number" min="0" value={adjustDiscount} onChange={(e) => setAdjustDiscount(e.target.value)}
+                    className="w-full px-4 py-3 bg-dark-800/50 border border-dark-600/50 rounded-xl text-white focus:ring-2 focus:ring-primary-500 transition-all" />
+                </div>
+              )}
+
+              {adjustAction === 'update_tax' && (
+                <div>
+                  <label className="text-sm text-dark-400 mb-2 block">Tax Rate (%)</label>
+                  <input type="number" min="0" max="100" step="0.5" value={adjustTaxRate} onChange={(e) => setAdjustTaxRate(e.target.value)}
+                    className="w-full px-4 py-3 bg-dark-800/50 border border-dark-600/50 rounded-xl text-white focus:ring-2 focus:ring-primary-500 transition-all" />
+                </div>
+              )}
+
+              {adjustAction === 'add_item' && (
+                <div className="space-y-3">
+                  <input type="text" placeholder="Description" required value={adjustItem.description}
+                    onChange={(e) => setAdjustItem({ ...adjustItem, description: e.target.value })}
+                    className="w-full px-4 py-3 bg-dark-800/50 border border-dark-600/50 rounded-xl text-white placeholder-dark-400 focus:ring-2 focus:ring-primary-500 transition-all" />
+                  <div className="grid grid-cols-3 gap-3">
+                    <input type="number" placeholder="Qty" min="1" value={adjustItem.quantity}
+                      onChange={(e) => setAdjustItem({ ...adjustItem, quantity: parseInt(e.target.value) || 1 })}
+                      className="px-4 py-3 bg-dark-800/50 border border-dark-600/50 rounded-xl text-white placeholder-dark-400 focus:ring-2 focus:ring-primary-500 transition-all" />
+                    <input type="number" placeholder="Unit Price" min="0" value={adjustItem.unitPrice}
+                      onChange={(e) => setAdjustItem({ ...adjustItem, unitPrice: parseFloat(e.target.value) || 0 })}
+                      className="px-4 py-3 bg-dark-800/50 border border-dark-600/50 rounded-xl text-white placeholder-dark-400 focus:ring-2 focus:ring-primary-500 transition-all" />
+                    <select value={adjustItem.category} onChange={(e) => setAdjustItem({ ...adjustItem, category: e.target.value })}
+                      className="px-4 py-3 bg-dark-800/50 border border-dark-600/50 rounded-xl text-white focus:ring-2 focus:ring-primary-500 transition-all">
+                      {categories.map(c => <option key={c} value={c} className="bg-dark-800">{c}</option>)}
+                    </select>
+                  </div>
+                  <p className="text-sm text-dark-400">Item Total: <span className="text-white font-semibold">Rs. {(adjustItem.quantity * adjustItem.unitPrice).toLocaleString()}</span></p>
+                </div>
+              )}
+
+              {adjustAction === 'remove_item' && (
+                <div>
+                  <label className="text-sm text-dark-400 mb-2 block">Select Item to Remove</label>
+                  <select value={adjustItemIndex} onChange={(e) => setAdjustItemIndex(parseInt(e.target.value))}
+                    className="w-full px-4 py-3 bg-dark-800/50 border border-dark-600/50 rounded-xl text-white focus:ring-2 focus:ring-primary-500 transition-all">
+                    {selectedInvoice.items?.map((item, idx) => (
+                      <option key={idx} value={idx} className="bg-dark-800">
+                        {idx + 1}. {item.description} - Rs. {item.total?.toLocaleString()}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {adjustAction === 'update_notes' && (
+                <div>
+                  <label className="text-sm text-dark-400 mb-2 block">Notes</label>
+                  <textarea value={adjustNotes} onChange={(e) => setAdjustNotes(e.target.value)} rows={3}
+                    className="w-full px-4 py-3 bg-dark-800/50 border border-dark-600/50 rounded-xl text-white placeholder-dark-400 focus:ring-2 focus:ring-primary-500 transition-all resize-none" />
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-dark-700/30">
+                <button type="button" onClick={() => setShowAdjustModal(false)} className="px-6 py-3 border border-dark-600/50 rounded-xl text-dark-300 hover:bg-dark-800 transition-all font-medium">Cancel</button>
+                <button type="submit" className="px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-xl font-semibold hover:from-amber-700 hover:to-amber-800 transition-all shadow-lg shadow-amber-600/30">Apply Adjustment</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

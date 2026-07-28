@@ -19,7 +19,7 @@ function Sidebar({ user, onLogout }) {
     { path: '/appointments', label: 'Appointments', icon: '📅', roles: ['admin', 'doctor', 'receptionist'] },
     { path: '/prescriptions', label: 'Prescriptions', icon: '💊', roles: ['admin', 'doctor'] },
     { path: '/vitals', label: 'Vitals', icon: '💓', roles: ['admin', 'doctor'] },
-    { path: '/billing', label: 'Billing', icon: '💰', roles: ['admin', 'receptionist'] },
+    { path: '/billing', label: 'Billing', icon: '💰', roles: ['admin', 'doctor', 'receptionist'] },
     { path: '/pharmacy', label: 'Pharmacy', icon: '🧪', roles: ['admin', 'doctor'] }
   ];
 

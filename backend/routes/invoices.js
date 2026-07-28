@@ -7,7 +7,8 @@ const {
   markAsPaid,
   addPayment,
   generatePDF,
-  deleteInvoice
+  deleteInvoice,
+  adjustInvoice
 } = require('../controllers/invoiceController');
 const { auth } = require('../middleware/auth');
 
@@ -18,5 +19,6 @@ router.get('/:id/pdf', auth, generatePDF);
 router.put('/:id/pay', auth, markAsPaid);
 router.post('/:id/payments', auth, addPayment);
 router.delete('/:id', auth, deleteInvoice);
+router.put('/:id/adjust', auth, adjustInvoice);
 
 module.exports = router;

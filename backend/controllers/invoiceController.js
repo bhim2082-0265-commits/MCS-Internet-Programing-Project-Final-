@@ -209,3 +209,81 @@ exports.deleteInvoice = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.adjustInvoice = async (req, res) => {
+  try {
+    const { action, itemIndex, item, discount, taxRate, notes } = req.body;
+    const invoice = await Invoice.findById(req.params.id);
+    if (!invoice) {
+      return res.status(404).json({ message: 'Invoice not found' });
+    }
+    if (invoice.status === 'Paid' || invoice.status === 'Cancelled') {
+      return res.status(400).json({ message: `Cannot adjust a ${invoice.status.toLowerCase()} invoice` });
+    }
+
+    switch (action) {
+      case 'add_item':
+        if (!item) return res.status(400).json({ message: 'Item data required' });
+        const addTotal = item.quantity * item.unitPrice;
+        invoice.items.push({ ...item, total: addTotal });
+        break;
+
+      case 'update_item':
+        if (itemIndex === undefined || !item) return res.status(400).json({ message: 'Item index and data required' });
+        if (itemIndex < 0 || itemIndex >= invoice.items.length) return res.status(400).json({ message: 'Invalid item index' });
+        const updTotal = item.quantity * item.unitPrice;
+        invoice.items[itemIndex] = { ...invoice.items[itemIndex].toObject(), ...item, total: updTotal };
+        break;
+
+      case 'remove_item':
+        if (itemIndex === undefined) return res.status(400).json({ message: 'Item index required' });
+        if (invoice.items.length <= 1) return res.status(400).json({ message: 'Cannot remove the last item' });
+        invoice.items.splice(itemIndex, 1);
+        break;
+
+      case 'apply_discount':
+        invoice.discount = Math.max(0, parseFloat(discount) || 0);
+        break;
+
+      case 'update_tax':
+        invoice.taxRate = parseFloat(taxRate) || 13;
+        break;
+
+      case 'update_notes':
+        invoice.notes = notes || '';
+        break;
+
+      default:
+        return res.status(400).json({ message: 'Invalid action' });
+    }
+
+    let subtotal = 0;
+    let taxableAmount = 0;
+    invoice.items.forEach(item => {
+      subtotal += item.total;
+      if (item.isTaxable !== false) {
+        taxableAmount += item.total;
+      }
+    });
+
+    invoice.subtotal = subtotal;
+    invoice.taxableAmount = taxableAmount;
+    invoice.taxAmount = (taxableAmount * invoice.taxRate) / 100;
+    invoice.totalAmount = subtotal + invoice.taxAmount - invoice.discount;
+
+    if (invoice.amountPaid >= invoice.totalAmount) {
+      invoice.amountPaid = invoice.totalAmount;
+      invoice.status = 'Paid';
+    } else if (invoice.amountPaid > 0) {
+      invoice.status = 'Partial';
+    } else {
+      invoice.status = 'Pending';
+    }
+
+    await invoice.save();
+    const populated = await invoice.populate('patientId');
+    res.json(populated);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
