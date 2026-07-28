@@ -95,6 +95,15 @@ export const analyticsAPI = {
   getDiseaseStats: () => api.get('/analytics/disease-stats')
 };
 
+export const medicineAPI = {
+  getAll: (params) => api.get('/medicines', { params }),
+  getById: (id) => api.get(`/medicines/${id}`),
+  create: (data) => api.post('/medicines', data),
+  update: (id, data) => api.put(`/medicines/${id}`, data),
+  delete: (id) => api.delete(`/medicines/${id}`),
+  getStats: () => api.get('/medicines/stats')
+};
+
 export const paymentAPI = {
   initiateEsewa: (data) => api.post('/payments/esewa/init', data),
   verifyEsewa: (data) => api.post('/payments/esewa/verify', data),

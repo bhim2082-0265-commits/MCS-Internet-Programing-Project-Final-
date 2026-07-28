@@ -8,6 +8,7 @@ import Appointments from './pages/Appointments';
 import Prescriptions from './pages/Prescriptions';
 import Billing from './pages/Billing';
 import Vitals from './pages/Vitals';
+import Pharmacy from './pages/Pharmacy';
 
 function Sidebar({ user, onLogout }) {
   const location = useLocation();
@@ -18,7 +19,8 @@ function Sidebar({ user, onLogout }) {
     { path: '/appointments', label: 'Appointments', icon: '📅', roles: ['admin', 'doctor', 'receptionist'] },
     { path: '/prescriptions', label: 'Prescriptions', icon: '💊', roles: ['admin', 'doctor'] },
     { path: '/vitals', label: 'Vitals', icon: '💓', roles: ['admin', 'doctor'] },
-    { path: '/billing', label: 'Billing', icon: '💰', roles: ['admin', 'receptionist'] }
+    { path: '/billing', label: 'Billing', icon: '💰', roles: ['admin', 'receptionist'] },
+    { path: '/pharmacy', label: 'Pharmacy', icon: '🧪', roles: ['admin', 'doctor'] }
   ];
 
   const filteredLinks = links.filter(link => link.roles.includes(user?.role));
@@ -169,6 +171,7 @@ function App() {
             <Route path="/prescriptions" element={<Prescriptions user={user} />} />
             <Route path="/vitals" element={<Vitals user={user} />} />
             <Route path="/billing" element={<Billing user={user} />} />
+            <Route path="/pharmacy" element={<Pharmacy user={user} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

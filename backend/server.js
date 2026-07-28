@@ -29,6 +29,7 @@ app.use('/api/invoices', require('./routes/invoices'));
 app.use('/api/vitals', require('./routes/vitals'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/payments', require('./routes/payments'));
+app.use('/api/medicines', require('./routes/medicines'));
 
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
