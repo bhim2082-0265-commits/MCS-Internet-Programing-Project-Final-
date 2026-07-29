@@ -1,37 +1,42 @@
-# Lincoln Hospital Management System
+# 🏥 Lincoln Hospital Management System
 
-A full-stack hospital management system with real-time capabilities.
-
----
-
-## 1. Tech Stack
-
-**Frontend:** React 18, Vite, Tailwind CSS, Axios, Socket.io Client  
-**Backend:** Node.js, Express, MongoDB/Mongoose, JWT, Socket.io, PDFKit
+> **A full-stack hospital management system with real-time capabilities.**  
+> Built for efficiency — from reception to billing to discharge.
 
 ---
 
-## 2. Features
+## 1. ⚙️ Tech Stack
 
-| Module | Description |
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 18, Vite, Tailwind CSS, Axios, Socket.io Client, Lucide Icons |
+| **Backend** | Node.js, Express, MongoDB / Mongoose, JWT, Socket.io, PDFKit |
+| **Real-time** | Socket.io for live queue & notifications |
+| **Auth** | JWT (bcryptjs + jsonwebtoken) |
+
+---
+
+## 2. 📋 Features
+
+| Module | What it does |
 |--------|-------------|
-| Patients | Register, search, manage records |
-| Appointments | Schedule with real-time queue |
-| Billing | Invoicing, payments, PDF export |
-| Pharmacy | Medicine inventory, prescriptions |
-| Laboratory | Test management & reports |
-| Inpatient | Admissions, rooms, discharge |
-| Staff | Employees, attendance, doctor fees |
-| Inventory | Stock tracking, purchase orders |
-| Medical Records | Electronic health records |
-| Insurance | Claim processing & management |
-| Notifications | Real-time alerts |
-| Audit Logs | Activity tracking |
-| Dashboard | Analytics & key metrics |
+| 👥 Patients | Register, search, manage records |
+| 📅 Appointments | Schedule with real-time queue |
+| 💰 Billing | Invoicing, payments, PDF export |
+| 💊 Pharmacy | Medicine inventory, prescriptions |
+| 🔬 Laboratory | Test management & reports |
+| 🏥 Inpatient | Admissions, rooms, discharge |
+| 👨‍⚕️ Staff | Employees, attendance, doctor fees |
+| 📦 Inventory | Stock tracking, purchase orders |
+| 📁 Medical Records | Electronic health records |
+| 🛡️ Insurance | Claim processing & management |
+| 🔔 Notifications | Real-time alerts |
+| 📋 Audit Logs | Activity tracking |
+| 📊 Dashboard | Analytics & key metrics |
 
 ---
 
-## 3. Setup
+## 3. 🚀 Setup
 
 ```
 # backend
@@ -48,9 +53,11 @@ done ✔
 done ✔
 ```
 
+Open **http://localhost:5173** in your browser.
+
 ---
 
-## 4. Structure
+## 4. 📁 Structure
 
 ```
 backend/
