@@ -1,62 +1,69 @@
 # Lincoln Hospital Management System
 
-A full-stack hospital management system built with the MERN stack and real-time capabilities.
+A full-stack hospital management system with real-time capabilities.
 
-## Tech Stack
+---
+
+## 1. Tech Stack
 
 **Frontend:** React 18, Vite, Tailwind CSS, Axios, Socket.io Client  
 **Backend:** Node.js, Express, MongoDB/Mongoose, JWT, Socket.io, PDFKit
 
-## Features
+---
 
-- Patient registration & management
-- Appointment scheduling with real-time queue
-- Billing, invoicing & PDF generation
-- Pharmacy & medicine inventory
-- Laboratory test management & reports
-- Inpatient admission, discharge & room management
-- Staff management & attendance tracking
-- Hospital inventory & purchase orders
-- Medical records (EHR)
-- Insurance claim processing
-- Real-time notifications
-- Audit logging
-- Analytics dashboard
+## 2. Features
 
-## Quick Start
+| Module | Description |
+|--------|-------------|
+| Patients | Register, search, manage records |
+| Appointments | Schedule with real-time queue |
+| Billing | Invoicing, payments, PDF export |
+| Pharmacy | Medicine inventory, prescriptions |
+| Laboratory | Test management & reports |
+| Inpatient | Admissions, rooms, discharge |
+| Staff | Employees, attendance, doctor fees |
+| Inventory | Stock tracking, purchase orders |
+| Medical Records | Electronic health records |
+| Insurance | Claim processing & management |
+| Notifications | Real-time alerts |
+| Audit Logs | Activity tracking |
+| Dashboard | Analytics & key metrics |
+
+---
+
+## 3. Setup
 
 ```bash
-# Clone
-git clone https://github.com/bhim2082-0265-commits/MCS-Internet-Programing-Project-Final-.git
-
 # Backend
 cd backend
 npm install
-# Create .env file (PORT, MONGODB_URI, JWT_SECRET, FRONTEND_URL)
+# .env: PORT, MONGODB_URI, JWT_SECRET, FRONTEND_URL
 npm run dev
 
-# Frontend (new terminal)
+# Frontend (separate terminal)
 cd frontend
 npm install
 npm run dev
 ```
 
-## Project Structure
+---
+
+## 4. Structure
 
 ```
 backend/
-├── config/          Database config
-├── controllers/     Route handlers
-├── middleware/       Auth middleware
-├── models/          Mongoose schemas
-├── routes/          API routes
-├── server.js        Entry point
-└── seed*.js         Data seeders
+├── config/          Database
+├── controllers/     Logic
+├── middleware/       Auth
+├── models/          Schemas
+├── routes/          APIs
+├── server.js        Entry
+└── seed*.js         Data
 
 frontend/
 └── src/
-    ├── pages/       Page components
-    ├── services/    API service layer
-    ├── App.jsx      Router setup
-    └── main.jsx     Entry point
+    ├── pages/       Views
+    ├── services/    API
+    ├── App.jsx      Router
+    └── main.jsx     Entry
 ```
