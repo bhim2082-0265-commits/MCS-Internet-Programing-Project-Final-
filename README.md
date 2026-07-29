@@ -33,17 +33,19 @@ A full-stack hospital management system with real-time capabilities.
 
 ## 3. Setup
 
-```bash
-# Backend
-cd backend
-npm install
-# .env: PORT, MONGODB_URI, JWT_SECRET, FRONTEND_URL
-npm run dev
+```
+# backend
+~ cd backend
+~ npm install
+~ # .env: PORT, MONGODB_URI, JWT_SECRET, FRONTEND_URL
+~ npm run dev
+done ✔
 
-# Frontend (separate terminal)
-cd frontend
-npm install
-npm run dev
+# frontend (new terminal)
+~ cd frontend
+~ npm install
+~ npm run dev
+done ✔
 ```
 
 ---
