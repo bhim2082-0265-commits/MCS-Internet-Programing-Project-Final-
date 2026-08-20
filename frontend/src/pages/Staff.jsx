@@ -497,7 +497,7 @@ function Staff() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-white">{editingEmployee ? 'Edit Employee' : 'Add New Employee'}</h2>
-                  <p className="text-sm text-dark-400 mt-1">Lincoln International Hospital</p>
+                  <p className="text-sm text-dark-400 mt-1">Lincoln International Hospital (HPBS)</p>
                 </div>
                 <button onClick={() => { setShowModal(false); resetForm(); }} className="p-2 hover:bg-dark-800 rounded-lg transition-colors">
                   <svg className="w-5 h-5 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

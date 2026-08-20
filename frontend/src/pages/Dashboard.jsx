@@ -90,7 +90,7 @@ function Dashboard({ user }) {
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl"></div>
         <div className="relative">
           <h1 className="text-3xl font-bold text-white mb-2">Welcome back, {user?.name?.split(' ')[0]}!</h1>
-          <p className="text-dark-300">Lincoln International Hospital and Research Center</p>
+          <p className="text-dark-300">Lincoln International Hospital — Hospital Patient & Billing System (HPBS)</p>
           <p className="text-sm text-dark-400 mt-1">Dhobidhara, Kathmandu, Nepal</p>
         </div>
       </div>

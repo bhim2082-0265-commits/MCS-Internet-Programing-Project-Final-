@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Patients from './pages/Patients';
@@ -22,7 +23,7 @@ function Sidebar({ user, onLogout }) {
   const location = useLocation();
   
   const links = [
-    { path: '/', label: 'Dashboard', icon: '📊', roles: ['admin', 'doctor', 'receptionist', 'pharmacist', 'accountant', 'nurse', 'lab technician'] },
+    { path: '/dashboard', label: 'Dashboard', icon: '📊', roles: ['admin', 'doctor', 'receptionist', 'pharmacist', 'accountant', 'nurse', 'lab technician'] },
     { path: '/patients', label: 'Patients', icon: '👥', roles: ['admin', 'doctor', 'receptionist'] },
     { path: '/appointments', label: 'Appointments', icon: '📅', roles: ['admin', 'doctor', 'receptionist'] },
     { path: '/prescriptions', label: 'Prescriptions', icon: '💊', roles: ['admin', 'doctor'] },
@@ -62,7 +63,8 @@ function Sidebar({ user, onLogout }) {
           </div>
           <div>
             <h1 className="text-lg font-bold text-white tracking-tight">Lincoln International</h1>
-            <p className="text-xs text-primary-300/80">Hospital & Research Center</p>
+            <p className="text-xs text-primary-300/80">Hospital Patient & Billing System</p>
+            <p className="text-xs text-primary-400/60 font-semibold">(HPBS)</p>
           </div>
         </div>
         <p className="text-xs text-dark-400 pl-15">Dhobidhara, Kathmandu, Nepal</p>
@@ -114,6 +116,10 @@ function Sidebar({ user, onLogout }) {
   );
 }
 
+function LoginHandler({ onLogin }) {
+  return <Login onLogin={onLogin} />;
+}
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -148,24 +154,6 @@ function App() {
     );
   }
 
-  if (!user) {
-    return (
-      <>
-        <Toaster 
-          position="top-right"
-          toastOptions={{
-            style: {
-              background: '#1e293b',
-              color: '#f1f5f9',
-              border: '1px solid #334155',
-            },
-          }}
-        />
-        <Login onLogin={handleLogin} />
-      </>
-    );
-  }
-
   return (
     <Router>
       <Toaster 
@@ -178,29 +166,39 @@ function App() {
           },
         }}
       />
-      <div className="flex min-h-screen bg-dark-950">
-        <Sidebar user={user} onLogout={handleLogout} />
-        <main className="flex-1 p-8 overflow-auto">
-          <Routes>
-            <Route path="/" element={<Dashboard user={user} />} />
-            <Route path="/patients" element={<Patients user={user} />} />
-            <Route path="/appointments" element={<Appointments user={user} />} />
-            <Route path="/prescriptions" element={<Prescriptions user={user} />} />
-            <Route path="/vitals" element={<Vitals user={user} />} />
-            <Route path="/medical-records" element={<MedicalRecords user={user} />} />
-            <Route path="/billing" element={<Billing user={user} />} />
-            <Route path="/pharmacy" element={<Pharmacy user={user} />} />
-            <Route path="/laboratory" element={<Laboratory user={user} />} />
-            <Route path="/inpatient" element={<Inpatient user={user} />} />
-            <Route path="/staff" element={<Staff user={user} />} />
-            <Route path="/inventory" element={<Inventory user={user} />} />
-            <Route path="/insurance" element={<Insurance user={user} />} />
-            <Route path="/notifications" element={<Notifications user={user} />} />
-            <Route path="/audit-logs" element={<AuditLogs user={user} />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </div>
+      {user ? (
+        <div className="flex min-h-screen bg-dark-950">
+          <Sidebar user={user} onLogout={handleLogout} />
+          <main className="flex-1 p-8 overflow-auto">
+            <Routes>
+              <Route path="/dashboard" element={<Dashboard user={user} />} />
+              <Route path="/patients" element={<Patients user={user} />} />
+              <Route path="/appointments" element={<Appointments user={user} />} />
+              <Route path="/prescriptions" element={<Prescriptions user={user} />} />
+              <Route path="/vitals" element={<Vitals user={user} />} />
+              <Route path="/medical-records" element={<MedicalRecords user={user} />} />
+              <Route path="/billing" element={<Billing user={user} />} />
+              <Route path="/pharmacy" element={<Pharmacy user={user} />} />
+              <Route path="/laboratory" element={<Laboratory user={user} />} />
+              <Route path="/inpatient" element={<Inpatient user={user} />} />
+              <Route path="/staff" element={<Staff user={user} />} />
+              <Route path="/inventory" element={<Inventory user={user} />} />
+              <Route path="/insurance" element={<Insurance user={user} />} />
+              <Route path="/notifications" element={<Notifications user={user} />} />
+              <Route path="/audit-logs" element={<AuditLogs user={user} />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </main>
+        </div>
+      ) : (
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginHandler onLogin={handleLogin} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      )}
     </Router>
   );
 }

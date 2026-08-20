@@ -35,7 +35,7 @@ const doctorSchema = new mongoose.Schema({
   },
   hospital: {
     type: String,
-    default: 'Lincoln International Hospital and Research Center'
+    default: 'Lincoln International Hospital (HPBS)'
   },
   location: {
     type: String,

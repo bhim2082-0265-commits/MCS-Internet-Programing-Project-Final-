@@ -79,7 +79,7 @@ function Login({ onLogin }) {
                 </svg>
               </div>
               <h1 className="text-2xl font-bold text-white tracking-tight">Lincoln International Hospital</h1>
-              <p className="text-primary-200 text-sm mt-2 font-medium">Hospital Patient Management System</p>
+              <p className="text-primary-200 text-sm mt-2 font-medium">Hospital Patient & Billing System (HPBS)</p>
               <div className="flex items-center justify-center gap-2 mt-2">
                 <div className="w-1.5 h-1.5 bg-accent-400 rounded-full"></div>
                 <p className="text-primary-300/80 text-xs">Dhobidhara, Kathmandu, Nepal</p>
@@ -290,7 +290,7 @@ function Login({ onLogin }) {
                   <div className="flex-1 h-px bg-gradient-to-r from-transparent via-dark-600 to-transparent"></div>
                 </div>
                 <p className="text-center text-xs text-dark-500">
-                  Lincoln International College &copy; {new Date().getFullYear()}
+                  Lincoln International Hospital &copy; {new Date().getFullYear()}
                 </p>
                 <p className="text-center text-xs text-dark-600 mt-1">
                   PAN: 601234567 | VAT: 13%

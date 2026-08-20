@@ -1,7 +1,7 @@
 {
   "name": "lincoln-hospital-backend",
   "version": "1.0.0",
-  "description": "Backend API for Lincoln International Hospital and Research center",
+  "description": "Backend API for Lincoln International Hospital — Hospital Patient & Billing System (HPBS)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -26,9 +26,9 @@ doctorSchema.pre('save', async function(next) {
 const Doctor = mongoose.model('Doctor', doctorSchema);
 
 const receptionists = [
-  { name: 'Kusam', email: 'kusam@lincolnhospital.com.np', password: 'reception123', phone: '9841234580', department: 'Reception', specialty: 'Front Desk', hospital: 'Lincoln International Hospital', location: 'Dhobidhara, Kathmandu, Nepal', role: 'receptionist' },
-  { name: 'Goma', email: 'goma@lincolnhospital.com.np', password: 'reception123', phone: '9841234581', department: 'Reception', specialty: 'Front Desk', hospital: 'Lincoln International Hospital', location: 'Dhobidhara, Kathmandu, Nepal', role: 'receptionist' },
-  { name: 'Binita', email: 'binita@lincolnhospital.com.np', password: 'reception123', phone: '9841234582', department: 'Reception', specialty: 'Front Desk', hospital: 'Lincoln International Hospital', location: 'Dhobidhara, Kathmandu, Nepal', role: 'receptionist' }
+  { name: 'Kusam', email: 'kusam@lincolnhospital.com.np', password: 'reception123', phone: '9841234580', department: 'Reception', specialty: 'Front Desk', hospital: 'Lincoln International Hospital (HPBS)', location: 'Dhobidhara, Kathmandu, Nepal', role: 'receptionist' },
+  { name: 'Goma', email: 'goma@lincolnhospital.com.np', password: 'reception123', phone: '9841234581', department: 'Reception', specialty: 'Front Desk', hospital: 'Lincoln International Hospital (HPBS)', location: 'Dhobidhara, Kathmandu, Nepal', role: 'receptionist' },
+  { name: 'Binita', email: 'binita@lincolnhospital.com.np', password: 'reception123', phone: '9841234582', department: 'Reception', specialty: 'Front Desk', hospital: 'Lincoln International Hospital (HPBS)', location: 'Dhobidhara, Kathmandu, Nepal', role: 'receptionist' }
 ];
 
 (async () => {

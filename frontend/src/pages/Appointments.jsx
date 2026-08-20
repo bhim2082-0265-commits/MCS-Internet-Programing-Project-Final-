@@ -314,7 +314,7 @@ function Appointments({ user }) {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-dark-400 w-24">Hospital:</span>
-                    <span className="text-sm text-white">{selectedDoctor.hospital || 'Lincoln International Hospital'}</span>
+                    <span className="text-sm text-white">{selectedDoctor.hospital || 'Lincoln International Hospital (HPBS)'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-dark-400 w-24">Fee:</span>

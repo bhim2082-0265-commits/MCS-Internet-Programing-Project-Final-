@@ -7,7 +7,8 @@ exports.generatePrescriptionPDF = async (prescription, patient) => {
     doc.on('data', chunk => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
-    doc.fontSize(18).font('Helvetica-Bold').text('Lincoln International Hospital and Research Center', { align: 'center' });
+    doc.fontSize(18).font('Helvetica-Bold').text('Lincoln International Hospital', { align: 'center' });
+    doc.fontSize(10).font('Helvetica-Bold').text('Hospital Patient & Billing System (HPBS)', { align: 'center' });
     doc.fontSize(10).font('Helvetica').text('Dhobidhara, Kathmandu, Nepal', { align: 'center' });
     doc.text('Tel: +977-1-4234567 | Email: info@lincolnhospital.com.np', { align: 'center' });
     doc.moveDown();
@@ -112,7 +113,7 @@ exports.generateInvoicePDF = async (invoice, patient) => {
 
     // Hospital name
     doc.fontSize(14).font('Helvetica-Bold').fillColor(C.wh).text('Lincoln International Hospital', M + 34, 8, { width: 260 });
-    doc.fontSize(6.5).fillColor(C.sky).text('and Research Center', M + 34, 24, { width: 260 });
+    doc.fontSize(6.5).fillColor(C.sky).text('Hospital Patient & Billing System (HPBS)', M + 34, 24, { width: 260 });
     doc.fontSize(5).fillColor(C.mu).text('Dhobidhara, Kathmandu, Nepal  |  PAN: 601234567  |  Tel: +977-1-4234567  |  info@lincoln.com.np', M + 34, 35, { width: 340 });
 
     // TAX INVOICE badge
@@ -394,7 +395,7 @@ exports.generateInvoicePDF = async (invoice, patient) => {
     doc.roundedRect(M, y, CW, 14, 2).fillAndStroke(C.ice, C.br);
     doc.fontSize(4).font('Helvetica-Bold').fillColor(C.blue).text('Terms:', M + 5, y + 1, { width: 24, lineBreak: false });
     doc.fontSize(3.5).font('Helvetica').fillColor(C.tl)
-      .text(invoice.termsAndConditions || 'Thank you for choosing Lincoln International Hospital. Payments are non-refundable. Please confirm all details before payment.', M + 30, y + 1, { width: CW - 36, lineBreak: false, ellipsis: true });
+      .text(invoice.termsAndConditions || 'Thank you for choosing Lincoln International Hospital (HPBS). Payments are non-refundable. Please confirm all details before payment.', M + 30, y + 1, { width: CW - 36, lineBreak: false, ellipsis: true });
     y += 18;
 
     // ═══════════════════════════════════════════════════════
@@ -405,7 +406,7 @@ exports.generateInvoicePDF = async (invoice, patient) => {
     doc.fontSize(3.5).font('Helvetica').fillColor(C.mu)
       .text(`Generated on ${new Date().toLocaleString('en-NP')}`, M, FOOTER_Y + 2, { width: CW, align: 'center', lineBreak: false });
     doc.fontSize(4.5).font('Helvetica-Bold').fillColor(C.sky)
-      .text('Lincoln International Hospital and Research Center  |  Dhobidhara, Kathmandu, Nepal', M, FOOTER_Y + 8, { width: CW, align: 'center', lineBreak: false });
+      .text('Lincoln International Hospital (HPBS)  |  Dhobidhara, Kathmandu, Nepal', M, FOOTER_Y + 8, { width: CW, align: 'center', lineBreak: false });
     doc.fontSize(3.5).fillColor(C.mu).text('This is a computer-generated invoice. No signature required if paid digitally.', M, FOOTER_Y + 14, { width: CW, align: 'center', lineBreak: false });
 
     doc.end();

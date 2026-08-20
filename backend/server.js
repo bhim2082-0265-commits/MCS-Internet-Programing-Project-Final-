@@ -62,7 +62,7 @@ io.on('connection', (socket) => {
 app.set('io', io);
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Lincoln International Hospital and Research center API' });
+  res.json({ message: 'Lincoln International Hospital — Hospital Patient & Billing System (HPBS) API' });
 });
 
 const PORT = process.env.PORT || 5000;

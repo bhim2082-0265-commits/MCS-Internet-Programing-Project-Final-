@@ -52,7 +52,7 @@ exports.createInvoice = async (req, res) => {
       totalAmount,
       panNumber: panNumber || '601234567',
       notes,
-      termsAndConditions: termsAndConditions || 'Thank you for choosing Lincoln International Hospital and Research Center. Please note that payments are non-refundable. Kindly confirm all details before making a payment.'
+      termsAndConditions: termsAndConditions || 'Thank you for choosing Lincoln International Hospital (HPBS). Please note that payments are non-refundable. Kindly confirm all details before making a payment.'
     });
     
     await invoice.save();

@@ -453,7 +453,7 @@ function MedicalRecords() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-white">{editingRecord ? 'Edit Medical Record' : 'New Medical Record'}</h2>
-                  <p className="text-sm text-dark-400 mt-1">Lincoln International Hospital</p>
+                  <p className="text-sm text-dark-400 mt-1">Lincoln International Hospital (HPBS)</p>
                 </div>
                 <button onClick={() => { setShowModal(false); setEditingRecord(null); setFormData(emptyFormData); setSymptomInput(''); }} className="p-2 hover:bg-dark-800 rounded-lg transition-colors">
                   <X className="w-5 h-5 text-dark-400" />
